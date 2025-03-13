@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Upload - Sales and Purchase Comparison</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky">
+                    <div class="p-4">
+                        <h2 class="text-primary">Excel Upload</h2>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/sale/list}">
+                                <i class="bi bi-receipt"></i> Sales
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/purchase/list}">
+                                <i class="bi bi-cart"></i> Purchases
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/notification/list}">
+                                <i class="bi bi-bell"></i> Notifications
+                                <span class="badge bg-danger" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" th:href="@{/excel/upload}">
+                                <i class="bi bi-upload"></i> Excel Upload
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Excel Upload</h1>
+                </div>
+                
+                <!-- Alert messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <div class="row">
+                    <!-- Sales Excel Upload -->
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Upload Sales Excel File</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="salesForm" th:action="@{/excel/upload/sales}" method="post" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="salesFile" class="form-label">Select Sales Excel File</label>
+                                        <input class="form-control" type="file" id="salesFile" name="file" 
+                                               accept=".xlsx, .xls" required>
+                                        <div class="form-text">Upload the Sales Excel file (salecompare.xlsx)</div>
+                                        <div class="invalid-feedback" id="salesFileError">
+                                            Please select a valid Excel file (.xlsx or .xls).
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" id="salesUploadBtn">
+                                        <i class="bi bi-upload"></i> Upload Sales Data
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Purchases Excel Upload -->
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Upload Purchases Excel File</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="purchasesForm" th:action="@{/excel/upload/purchases}" method="post" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="purchasesFile" class="form-label">Select Purchases Excel File</label>
+                                        <input class="form-control" type="file" id="purchasesFile" name="file" 
+                                               accept=".xlsx, .xls" required>
+                                        <div class="form-text">Upload the Purchases Excel file (purchasecompare.xlsx)</div>
+                                        <div class="invalid-feedback" id="purchasesFileError">
+                                            Please select a valid Excel file (.xlsx or .xls).
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" id="purchasesUploadBtn">
+                                        <i class="bi bi-upload"></i> Upload Purchases Data
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- File Format Information -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>File Format Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Sales Excel Format</h6>
+                                        <p>The Sales Excel file should have the following columns:</p>
+                                        <ul>
+                                            <li>Invoice Date</li>
+                                            <li>Invoice Number</li>
+                                            <li>Invoice Status</li>
+                                            <li>Customer Name</li>
+                                            <li>GST Treatment</li>
+                                            <li>SubTotal</li>
+                                            <li>Total</li>
+                                            <li>e-Invoice Status</li>
+                                            <li>Item Name</li>
+                                            <li>Item Desc</li>
+                                            <li>Quantity</li>
+                                            <li>Item.CF.Start Date</li>
+                                            <li>Item.CF.End Date</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Purchases Excel Format</h6>
+                                        <p>The Purchases Excel file should have the following columns:</p>
+                                        <ul>
+                                            <li>Console</li>
+                                            <li>Domain name</li>
+                                            <li>Subscription</li>
+                                            <li>Description</li>
+                                            <li>Order name</li>
+                                            <li>Start date</li>
+                                            <li>End date</li>
+                                            <li>Quantity</li>
+                                            <li>PO number</li>
+                                            <li>Amount</li>
+                                            <li>Customer ID</li>
+                                            <li>SKU ID</li>
+                                            <li>Rate PU</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sample Templates -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Download Sample Templates</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <a th:href="@{/excel/download/sales-template}" class="btn btn-outline-primary">
+                                            <i class="bi bi-download"></i> Download Sales Template
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <a th:href="@{/excel/download/purchases-template}" class="btn btn-outline-primary">
+                                            <i class="bi bi-download"></i> Download Purchases Template
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script th:src="@{/js/script.js}"></script>
+    <script>
+        $(document).ready(function() {
+            // Validate sales file upload
+            $('#salesForm').submit(function(event) {
+                const fileInput = $('#salesFile')[0];
+                if (!validateExcelFile(fileInput)) {
+                    $('#salesFile').addClass('is-invalid');
+                    $('#salesFileError').show();
+                    event.preventDefault();
+                    return false;
+                }
+                
+                // Show loading spinner
+                $('#salesUploadBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+                $('#salesUploadBtn').prop('disabled', true);
+                return true;
+            });
+            
+            // Validate purchases file upload
+            $('#purchasesForm').submit(function(event) {
+                const fileInput = $('#purchasesFile')[0];
+                if (!validateExcelFile(fileInput)) {
+                    $('#purchasesFile').addClass('is-invalid');
+                    $('#purchasesFileError').show();
+                    event.preventDefault();
+                    return false;
+                }
+                
+             // Show loading spinner
+                $('#salesUploadBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+                $('#salesUploadBtn').prop('disabled', true);
+                return true;
+            });
+            
+            // Validate purchases file upload
+            $('#purchasesForm').submit(function(event) {
+                const fileInput = $('#purchasesFile')[0];
+                if (!validateExcelFile(fileInput)) {
+                    $('#purchasesFile').addClass('is-invalid');
+                    $('#purchasesFileError').show();
+                    event.preventDefault();
+                    return false;
+                }
+                
+                // Show loading spinner
+                $('#purchasesUploadBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+                $('#purchasesUploadBtn').prop('disabled', true);
+                return true;
+            });
+            
+            // File input change event for sales
+            $('#salesFile').change(function() {
+                $(this).removeClass('is-invalid');
+                validateFileName($(this), 'salecompare');
+            });
+            
+            // File input change event for purchases
+            $('#purchasesFile').change(function() {
+                $(this).removeClass('is-invalid');
+                validateFileName($(this), 'purchasecompare');
+            });
+            
+            // Validate Excel file extension
+            function validateExcelFile(fileInput) {
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    return false;
+                }
+                
+                const file = fileInput.files[0];
+                const fileName = file.name.toLowerCase();
+                return fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+            }
+            
+            // Validate file name for suggestion
+            function validateFileName(fileInput, expectedName) {
+                const fileName = fileInput.val().toLowerCase();
+                const file = fileInput[0].files[0];
+                
+                if (file && !fileName.includes(expectedName)) {
+                    const warningMessage = `Note: The expected file name contains '${expectedName}'. You're uploading '${file.name}'. Make sure this is the correct file.`;
+                    
+                    // Create warning alert if not exists
+                    if ($(`#${expectedName}Warning`).length === 0) {
+                        const alert = `<div id="${expectedName}Warning" class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                            ${warningMessage}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`;
+                        fileInput.parent().append(alert);
+                    }
+                } else {
+                    // Remove warning if exists
+                    $(`#${expectedName}Warning`).remove();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

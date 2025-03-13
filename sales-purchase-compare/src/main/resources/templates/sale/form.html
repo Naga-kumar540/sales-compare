@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sale Form - Sales and Purchase Comparison</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky">
+                    <div class="p-4">
+                        <h2 class="text-primary">Sales</h2>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" th:href="@{/sale/list}">
+                                <i class="bi bi-receipt"></i> Sales
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/purchase/list}">
+                                <i class="bi bi-cart"></i> Purchases
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/notification/list}">
+                                <i class="bi bi-bell"></i> Notifications
+                                <span class="badge bg-danger" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/excel/upload}">
+                                <i class="bi bi-upload"></i> Excel Upload
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2" th:text="${sale.id != null ? 'Edit Sale' : 'Add New Sale'}">Sale Form</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a th:href="@{/sale/list}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sale form -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 th:text="${sale.id != null ? 'Edit Sale Details' : 'Enter Sale Details'}">Sale Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="${sale.id != null ? '/sale/edit/' + sale.id : '/sale/add'}" 
+                              th:object="${sale}" method="post" class="row g-3">
+                            <input type="hidden" th:field="*{id}" />
+                            
+                            <div class="col-md-6">
+                                <label for="invoiceDate" class="form-label">Invoice Date</label>
+                                <input type="date" class="form-control" id="invoiceDate" th:field="*{invoiceDate}" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('invoiceDate')}" 
+                                     th:errors="*{invoiceDate}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="invoiceNumber" class="form-label">Invoice Number</label>
+                                <input type="text" class="form-control" id="invoiceNumber" th:field="*{invoiceNumber}" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('invoiceNumber')}" 
+                                     th:errors="*{invoiceNumber}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="invoiceStatus" class="form-label">Invoice Status</label>
+                                <select class="form-select" id="invoiceStatus" th:field="*{invoiceStatus}">
+                                    <option value="">Select Status</option>
+                                    <option value="Draft">Draft</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('invoiceStatus')}" 
+                                     th:errors="*{invoiceStatus}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="customerName" class="form-label">Customer Name</label>
+                                <input type="text" class="form-control" id="customerName" th:field="*{customerName}" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('customerName')}" 
+                                     th:errors="*{customerName}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="gstTreatment" class="form-label">GST Treatment</label>
+                                <input type="text" class="form-control" id="gstTreatment" th:field="*{gstTreatment}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('gstTreatment')}" 
+                                     th:errors="*{gstTreatment}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="einvoiceStatus" class="form-label">e-Invoice Status</label>
+                                <input type="text" class="form-control" id="einvoiceStatus" th:field="*{einvoiceStatus}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('einvoiceStatus')}" 
+                                     th:errors="*{einvoiceStatus}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="itemName" class="form-label">Item Name</label>
+                                <input type="text" class="form-control" id="itemName" th:field="*{itemName}" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('itemName')}" 
+                                     th:errors="*{itemName}"></div>
+                                <div class="form-text">Use the exact subscription name (e.g., "Google Workspace Business Starter")</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="itemDesc" class="form-label">Item Description (Domain)</label>
+                                <input type="text" class="form-control" id="itemDesc" th:field="*{itemDesc}" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('itemDesc')}" 
+                                     th:errors="*{itemDesc}"></div>
+                                <div class="form-text">Include the domain name (e.g., "example.com")</div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" th:field="*{quantity}" min="1" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('quantity')}" 
+                                     th:errors="*{quantity}"></div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="subtotal" class="form-label">Subtotal</label>
+                                <input type="number" class="form-control" id="subtotal" th:field="*{subtotal}" step="0.01" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('subtotal')}" 
+                                     th:errors="*{subtotal}"></div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="total" class="form-label">Total (with tax)</label>
+                                <input type="number" class="form-control" id="total" th:field="*{total}" step="0.01" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('total')}" 
+                                     th:errors="*{total}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" th:field="*{startDate}" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('startDate')}" 
+                                     th:errors="*{startDate}"></div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" th:field="*{endDate}" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('endDate')}" 
+                                     th:errors="*{endDate}"></div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> 
+                                    <span th:text="${sale.id != null ? 'Update Sale' : 'Save Sale'}">Save</span>
+                                </button>
+                                <a th:href="@{/sale/list}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script th:src="@{/js/script.js}"></script>
+</body>
+</html>

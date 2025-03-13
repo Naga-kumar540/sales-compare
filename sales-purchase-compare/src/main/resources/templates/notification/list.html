@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Sales and Purchase Comparison</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky">
+                    <div class="p-4">
+                        <h2 class="text-primary">Notifications</h2>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/sale/list}">
+                                <i class="bi bi-receipt"></i> Sales
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/purchase/list}">
+                                <i class="bi bi-cart"></i> Purchases
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" th:href="@{/notification/list}">
+                                <i class="bi bi-bell"></i> Notifications
+                                <span class="badge bg-danger" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/excel/upload}">
+                                <i class="bi bi-upload"></i> Excel Upload
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Notifications</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a th:href="@{/notification/read-all}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-check-all"></i> Mark All as Read
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter tabs -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == null ? 'active' : ''}" 
+                           th:href="@{/notification/list}">All Notifications</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'unread' ? 'active' : ''}" 
+                           th:href="@{/notification/unread}">
+                           Unread <span class="badge bg-danger" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'QUANTITY_VARIATION' ? 'active' : ''}" 
+                           th:href="@{/notification/type/QUANTITY_VARIATION}">Quantity Variations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeFilter == 'PRICE_VARIATION' ? 'active' : ''}" 
+                           th:href="@{/notification/type/PRICE_VARIATION}">Price Variations</a>
+                    </li>
+                </ul>
+                
+                <!-- Notifications list -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Notification List</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(notifications)}" class="alert alert-info">
+                            No notifications found.
+                        </div>
+                        <div th:unless="${#lists.isEmpty(notifications)}">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Item Name</th>
+                                            <th>Domain Name</th>
+                                            <th>Details</th>
+                                            <th>Created At</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="notification : ${notifications}" 
+                                            th:class="${notification.isRead ? '' : 'table-warning'}">
+                                            <td>
+                                                <span class="badge" 
+                                                      th:classappend="${notification.notificationType == 'QUANTITY_VARIATION' ? 'bg-primary' : 'bg-danger'}"
+                                                      th:text="${notification.notificationType}"></span>
+                                            </td>
+                                            <td th:text="${notification.itemName}"></td>
+                                            <td th:text="${notification.domainName}"></td>
+                                            <td>
+                                                <div th:if="${notification.notificationType == 'QUANTITY_VARIATION'}">
+                                                    <strong>Sale Qty:</strong> <span th:text="${notification.saleQuantity}"></span><br>
+                                                    <strong>Purchase Qty:</strong> <span th:text="${notification.purchaseQuantity}"></span><br>
+                                                    <strong>Difference:</strong> <span th:text="${notification.quantityDifference}"></span>
+                                                </div>
+                                                <div th:if="${notification.notificationType == 'PRICE_VARIATION'}">
+                                                    <strong>Sale Price:</strong> <span th:text="${#numbers.formatDecimal(notification.salePrice, 1, 2)}"></span><br>
+                                                    <strong>Purchase Price:</strong> <span th:text="${#numbers.formatDecimal(notification.purchasePrice, 1, 2)}"></span><br>
+                                                    <strong>Difference:</strong> <span th:text="${#numbers.formatDecimal(notification.priceDifference, 1, 2)}"></span>
+                                                    (<span th:text="${#numbers.formatDecimal(notification.priceDifferencePercentage, 1, 2)}"></span>%)
+                                                </div>
+                                            </td>
+                                            <td th:text="${#temporals.format(notification.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
+                                            <td>
+                                                <span class="badge" 
+                                                      th:classappend="${notification.isRead ? 'bg-success' : 'bg-warning'}"
+                                                      th:text="${notification.isRead ? 'Read' : 'Unread'}"></span>
+                                            </td>
+                                            <td>
+                                                <button th:unless="${notification.isRead}" class="btn btn-sm btn-success mark-read-btn" 
+                                                        th:data-id="${notification.id}">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger delete-btn" 
+                                                        th:data-id="${notification.id}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script th:src="@{/js/script.js}"></script>
+    <script>
+        $(document).ready(function() {
+            // Mark notification as read
+            $('.mark-read-btn').click(function() {
+                const id = $(this).data('id');
+                $.get('/notification/read/' + id, function() {
+                    location.reload();
+                });
+            });
+            
+            // Delete notification
+            $('.delete-btn').click(function() {
+                if (confirm('Are you sure you want to delete this notification?')) {
+                    const id = $(this).data('id');
+                    $.ajax({
+                        url: '/notification/' + id,
+                        type: 'DELETE',
+                        success: function() {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
