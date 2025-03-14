@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy only the pom.xml first (for dependency caching)
 COPY pom.xml .
 
+# Verify that pom.xml exists
+RUN ls -l /app/pom.xml
+
 # Download dependencies
 RUN mvn dependency:go-offline
 
